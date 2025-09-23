@@ -1,0 +1,130 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: jobboard-postgres
+    env_file: .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - jobboard-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: jobbord-rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    networks:
+      - jobboard-network
+
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: jobboard-api-gateway
+    ports:
+      - "3000:3000"
+    env_file: .env
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      NODE_ENV: ${NODE_ENV}
+    depends_on:
+      user-resume-service:
+        condition: service_started
+      company-vacancy-service:
+        condition: service_started
+      industry-service:
+        condition: service_started
+    restart: always
+    networks:
+      - jobboard-network
+
+  user-resume-service:
+    build:
+      context: ./user-resume-service
+      target: development
+    container_name: jobboard-user-resume
+    ports:
+      - "3001:3001"
+    env_file: .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      NODE_ENV: ${NODE_ENV}
+      RABBITMQ_URL: ${RABBITMQ_URL}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: always
+    networks:
+      - jobboard-network
+
+  company-vacancy-service:
+    build:
+      context: ./company-vacancy-service
+      target: development
+    container_name: jobboard-company-vacancy
+    ports:
+      - "3002:3002"
+    env_file: .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      NODE_ENV: ${NODE_ENV}
+      RABBITMQ_URL: ${RABBITMQ_URL}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: always
+    networks:
+      - jobboard-network
+
+  industry-service:
+    build:
+      context: ./industry-service
+      target: development
+    container_name: jobboard-industry
+    ports:
+      - "3003:3003"
+    env_file: .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      NODE_ENV: ${NODE_ENV}
+      RABBITMQ_URL: ${RABBITMQ_URL}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: always
+    networks:
+      - jobboard-network
+
+volumes:
+  postgres_data:
+
+networks:
+  jobboard-network:
+    driver: bridge
