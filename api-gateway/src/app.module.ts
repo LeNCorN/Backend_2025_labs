@@ -1,12 +1,15 @@
 import { Module } from "@nestjs/common";
 import { AppController } from "./app.controller";
-import { AppService } from "./app.service";
 import { HttpModule } from "@nestjs/axios";
-import { HealthController } from "./Health.controller";
 
 @Module({
-  imports: [HttpModule.register({})],
-  controllers: [AppController, HealthController],
-  providers: [AppService],
+    imports: [
+        HttpModule.register({
+            timeout: 10000,
+            maxRedirects: 5,
+        })
+    ],
+    controllers: [AppController],
+    providers: [],
 })
 export class AppModule {}
