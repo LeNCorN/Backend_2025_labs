@@ -1,22 +1,25 @@
-import { NestFactory } from "@nestjs/core";
-import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
-import { AppModule } from "./app.module";
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+    const app = await NestFactory.create(AppModule);
 
-  const config = new DocumentBuilder()
-    .setTitle("Job Board API Gateway")
-    .setDescription("API documentation for microservices via gateway")
-    .setVersion("1.0")
-    .addTag("user", "User & Resume Service")
-    .addTag("company", "Company & Vacancy Service")
-    .addTag("industry", "Industry Service")
-    .build();
+    app.useGlobalPipes(new ValidationPipe());
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup("api/docs", app, document);
+    const config = new DocumentBuilder()
+        .setTitle('API Gateway')
+        .setDescription('Gateway for all microservices')
+        .setVersion('1.0')
+        .addTag('gateway', 'Gateway operations')
+        .build();
 
-  await app.listen(3000);
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api/docs', app, document);
+
+    await app.listen(3000);
+    console.log('API Gateway running on http://localhost:3000');
+    console.log('Swagger UI available at http://localhost:3000/api/docs');
 }
 bootstrap();
