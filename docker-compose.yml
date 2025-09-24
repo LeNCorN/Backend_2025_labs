@@ -70,10 +70,8 @@ services:
       NODE_ENV: ${NODE_ENV}
       RABBITMQ_URL: ${RABBITMQ_URL}
     depends_on:
-      rabbitmq:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
+      - rabbitmq
+      - postgres
     restart: always
     networks:
       - jobboard-network
@@ -92,10 +90,8 @@ services:
       NODE_ENV: ${NODE_ENV}
       RABBITMQ_URL: ${RABBITMQ_URL}
     depends_on:
-      rabbitmq:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
+      - rabbitmq
+      - postgres
     restart: always
     networks:
       - jobboard-network
@@ -114,10 +110,8 @@ services:
       NODE_ENV: ${NODE_ENV}
       RABBITMQ_URL: ${RABBITMQ_URL}
     depends_on:
-      rabbitmq:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy
+      - rabbitmq
+      - postgres
     restart: always
     networks:
       - jobboard-network
